@@ -4,10 +4,6 @@ project (FortranContainer Fortran)
 
 set (version 0.0.1)
 
-#if (CMAKE_Fortran_COMPILER_ID STREQUAL "PGI")
-#  set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -fPIC")
-#endif ()
-
 set (sources
   "src/linked_list_mod.F90"
   "src/hash_table_mod.F90"
@@ -27,3 +23,41 @@ if (RUN_TEST)
   add_executable (hash_table_test "src/hash_table_test.F90")
   target_link_libraries (hash_table_test fortran_unit_test fortran_container)
 endif ()
+
+install (TARGETS fortran_container EXPORT FortranContainerTargets
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+)
+
+install (FILES
+  "${CMAKE_BINARY_DIR}/.mods/datetime_mod.mod"
+  "${CMAKE_BINARY_DIR}/.mods/timedelta_mod.mod"
+  DESTINATION include/fortran_datetime
+)
+
+include (CMakePackageConfigHelpers)
+write_basic_package_version_file (
+  "${CMAKE_CURRENT_BINARY_DIR}/FortranContainer/FortranContainerConfigVersion.cmake"
+  VERSION ${version}
+  COMPATIBILITY AnyNewerVersion
+)
+
+export (EXPORT FortranContainerTargets
+  FILE "${CMAKE_CURRENT_BINARY_DIR}/FortranContainer/FortranContainerTargets.cmake"
+)
+configure_file (cmake/FortranContainerConfig.cmake
+  "${CMAKE_CURRENT_BINARY_DIR}/FortranContainer/FortranContainerConfig.cmake"
+)
+
+set (ConfigPackageLocation lib/cmake/FortranContainer)
+install (EXPORT FortranContainerTargets
+  FILE FortranContainerTargets.cmake
+  DESTINATION ${ConfigPackageLocation}
+)
+install (
+  FILES
+    "${CMAKE_CURRENT_BINARY_DIR}/FortranContainer/FortranContainerConfig.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/FortranContainer/FortranContainerConfigVersion.cmake"
+  DESTINATION
+    ${ConfigPackageLocation}
+)
