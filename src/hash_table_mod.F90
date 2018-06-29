@@ -8,7 +8,19 @@ module hash_table_mod
     type(linked_list_type) chain
   end type hash_table_item_type
 
+  type hash_table_iterator_type
+    type(hash_table_type), pointer :: table
+    integer key_index
+    character(:), allocatable :: key
+    character(:), allocatable :: next_key
+    class(*), pointer :: value
+  contains
+    procedure :: ended => hash_table_ended
+    procedure :: next => hash_table_iterator_next
+  end type hash_table_iterator_type
+
   type hash_table_type
+    character(30), allocatable :: keys(:)
     type(hash_table_item_type), allocatable :: items(:)
     integer :: chunk_size = 1000
     integer :: size = 0
@@ -18,6 +30,7 @@ module hash_table_mod
     procedure :: expand => hash_table_expand
     procedure :: insert => hash_table_insert
     procedure :: value => hash_table_value
+    procedure :: hashed => hash_table_hashed
     final :: hash_table_finalize
   end type hash_table_type
 
@@ -58,6 +71,7 @@ contains
     if (present(chunk_size)) hash_table%chunk_size = chunk_size
     if (present(max_load_factor)) hash_table%max_load_factor = max_load_factor
 
+    allocate(hash_table%keys(hash_table%chunk_size))
     allocate(hash_table%items(hash_table%chunk_size))
 
   end function hash_table
@@ -79,6 +93,7 @@ contains
     i = this%index_number(hash_code(key))
     call this%items(i)%chain%insert(key, value)
     this%size = this%size + 1
+    this%keys(this%size) = key
 
   end subroutine hash_table_insert
 
@@ -95,11 +110,60 @@ contains
 
   end function hash_table_value
 
+  function hash_table_hashed(this, key)
+
+    class(hash_table_type), intent(in) :: this
+    character(*), intent(in) :: key
+    logical hash_table_hashed
+
+    integer i
+
+    i = this%index_number(hash_code(key))
+    hash_table_hashed = associated(this%items(i)%chain%value(key))
+
+  end function hash_table_hashed
+
+  function hash_table_iterator(table)
+
+    type(hash_table_type), intent(in), target :: table
+    type(hash_table_iterator_type) hash_table_iterator
+
+    if (table%size > 0) then
+      hash_table_iterator%table => table
+      hash_table_iterator%key_index = 1
+      hash_table_iterator%value => table%value(table%keys(1))
+      hash_table_iterator%key = table%keys(1)
+      if (table%size > 1) hash_table_iterator%next_key = table%keys(2)
+    end if
+
+  end function hash_table_iterator
+
+  function hash_table_ended(this)
+
+    class(hash_table_iterator_type), intent(in) :: this
+    logical hash_table_ended
+
+    hash_table_ended = this%key_index > this%table%size
+
+  end function hash_table_ended
+
+  subroutine hash_table_iterator_next(this)
+
+    class(hash_table_iterator_type), intent(inout) :: this
+
+    this%key_index = this%key_index + 1
+    this%value => this%table%value(this%next_key)
+    this%key = this%next_key
+    if (this%key_index + 1 <= this%table%size) this%next_key = this%table%keys(this%key_index + 1)
+
+  end subroutine hash_table_iterator_next
+
   subroutine hash_table_finalize(this)
 
     type(hash_table_type), intent(inout) :: this
 
-    deallocate(this%items)
+    if (allocated(this%keys)) deallocate(this%keys)
+    if (allocated(this%items)) deallocate(this%items)
     this%size = 0
 
   end subroutine hash_table_finalize

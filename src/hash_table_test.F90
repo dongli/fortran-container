@@ -6,6 +6,7 @@ program hash_table_test
   implicit none
 
   type(hash_table_type) table
+  type(hash_table_iterator_type) iter
 
   call test_case_init()
 
@@ -31,6 +32,27 @@ program hash_table_test
   class default
     call assert_true(.false.)
   end select
+
+  iter = hash_table_iterator(table)
+  call assert_false(iter%ended())
+  call assert_equal(iter%key, 'foo')
+  select type (val => iter%value)
+  type is (integer)
+    call assert_equal(val, 1)
+  class default
+    call assert_true(.false.)
+  end select
+  call iter%next()
+  call assert_false(iter%ended())
+  call assert_equal(iter%key, 'bar')
+  select type (val => iter%value)
+  type is (real)
+    call assert_equal(val, 4.2)
+  class default
+    call assert_true(.false.)
+  end select
+  call iter%next()
+  call assert_true(iter%ended())
 
   call test_case_report('Test hash table type')
 
