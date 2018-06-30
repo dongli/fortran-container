@@ -15,7 +15,9 @@ program hash_table_test
   table = hash_table()
   call assert_equal(table%size, 0)
 
+  call assert_false(table%hashed('foo'))
   call table%insert('foo', 1)
+  call assert_true(table%hashed('foo'))
   call assert_equal(table%size, 1)
   select type (val => table%value('foo'))
   type is (integer)
@@ -24,7 +26,9 @@ program hash_table_test
     call assert_true(.false.)
   end select
 
+  call assert_false(table%hashed('bar'))
   call table%insert('bar', 4.2)
+  call assert_true(table%hashed('bar'))
   call assert_equal(table%size, 2)
   select type (val => table%value('bar'))
   type is (real)

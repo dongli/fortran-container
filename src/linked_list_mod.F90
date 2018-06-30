@@ -6,7 +6,7 @@ module linked_list_mod
     class(linked_list_item_type), pointer :: prev => null()
     class(linked_list_item_type), pointer :: next => null()
     character(:), allocatable :: key
-    class(*), pointer :: value
+    class(*), pointer :: value => null()
   contains
     final :: linked_list_item_finalize
   end type linked_list_item_type
@@ -82,6 +82,8 @@ contains
     item => this%item(key)
     if (associated(item)) then
       linked_list_value => item%value
+    else
+      nullify(linked_list_value)
     end if
 
   end function linked_list_value
