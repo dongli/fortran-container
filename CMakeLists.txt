@@ -9,7 +9,7 @@ set (sources
   "src/hash_table_mod.F90"
 )
 
-add_library (fortran_container ${sources})
+add_library (fortran_container SHARED ${sources})
 set_property (TARGET fortran_container PROPERTY VERSION ${version})
 set_property (TARGET fortran_container PROPERTY SOVERSION 1)
 
@@ -30,9 +30,9 @@ install (TARGETS fortran_container EXPORT FortranContainerTargets
 )
 
 install (FILES
-  "${CMAKE_BINARY_DIR}/.mods/datetime_mod.mod"
-  "${CMAKE_BINARY_DIR}/.mods/timedelta_mod.mod"
-  DESTINATION include/fortran_datetime
+  "${CMAKE_BINARY_DIR}/.mods/linked_list_mod.mod"
+  "${CMAKE_BINARY_DIR}/.mods/hash_table_mod.mod"
+  DESTINATION include/fortran_container
 )
 
 include (CMakePackageConfigHelpers)

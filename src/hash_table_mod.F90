@@ -128,9 +128,9 @@ contains
     type(hash_table_type), intent(in), target :: table
     type(hash_table_iterator_type) hash_table_iterator
 
+    hash_table_iterator%table => table
+    hash_table_iterator%key_index = 1
     if (table%size > 0) then
-      hash_table_iterator%table => table
-      hash_table_iterator%key_index = 1
       hash_table_iterator%value => table%value(table%keys(1))
       hash_table_iterator%key = table%keys(1)
       if (table%size > 1) hash_table_iterator%next_key = table%keys(2)
