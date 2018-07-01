@@ -57,7 +57,12 @@ contains
     item => this%item(key)
 
     if (associated(item)) then
-      call this%remove_item(item)
+      if (same_type_as(value, item%value)) then
+        deallocate(item%value)
+        allocate(item%value, source=value)
+      else
+        call this%remove_item(item)
+      end if
     end if
 
     if (.not. associated(item)) then
@@ -65,9 +70,8 @@ contains
       allocate(item)
       item%key = key
       call this%insert_item(item)
+      allocate(item%value, source=value)
     end if
-
-    allocate(item%value, source=value)
 
   end subroutine linked_list_insert
 
