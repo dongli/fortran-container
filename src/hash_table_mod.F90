@@ -91,9 +91,11 @@ contains
     integer i
 
     i = this%index_number(hash_code(key))
+    if (.not. this%hashed(key)) then
+      this%size = this%size + 1
+      this%keys(this%size) = key
+    end if
     call this%items(i)%chain%insert(key, value)
-    this%size = this%size + 1
-    this%keys(this%size) = key
 
   end subroutine hash_table_insert
 

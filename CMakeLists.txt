@@ -2,6 +2,13 @@ cmake_minimum_required (VERSION 3.0)
 
 project (FortranContainer Fortran)
 
+if (CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
+  set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -ffree-line-length-none")
+elseif (CMAKE_Fortran_COMPILER_ID STREQUAL "PGI")
+  set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -read_only_relocs suppress -fPIC")
+endif ()
+set (CMAKE_Fortran_MODULE_DIRECTORY "${CMAKE_BINARY_DIR}/fortran_container")
+
 set (version 0.0.1)
 
 set (sources
@@ -15,7 +22,7 @@ set_property (TARGET fortran_container PROPERTY SOVERSION 1)
 
 if (RUN_TEST)
   add_subdirectory ("lib/unit-test")
-  include_directories ("${PROJECT_BINARY_DIR}/fortran_unit_test")
+  include_directories (${UNIT_TEST_INCLUDE_DIR})
 
   add_executable (linked_list_test "src/linked_list_test.F90")
   target_link_libraries (linked_list_test fortran_unit_test fortran_container)

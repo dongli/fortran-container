@@ -141,7 +141,7 @@ contains
 
     type(linked_list_item_type), intent(inout) :: this
 
-    deallocate(this%value)
+    if (associated(this%value)) deallocate(this%value)
 
   end subroutine linked_list_item_finalize
 
