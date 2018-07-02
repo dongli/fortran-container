@@ -5,7 +5,7 @@ project (FortranContainer Fortran)
 if (CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
   set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -ffree-line-length-none")
 elseif (CMAKE_Fortran_COMPILER_ID STREQUAL "PGI")
-  set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -read_only_relocs suppress -fPIC")
+  set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -fPIC")
 endif ()
 set (CMAKE_Fortran_MODULE_DIRECTORY "${CMAKE_BINARY_DIR}/fortran_container")
 
@@ -16,7 +16,7 @@ set (sources
   "src/hash_table_mod.F90"
 )
 
-add_library (fortran_container SHARED ${sources})
+add_library (fortran_container ${sources})
 set_property (TARGET fortran_container PROPERTY VERSION ${version})
 set_property (TARGET fortran_container PROPERTY SOVERSION 1)
 
