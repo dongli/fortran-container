@@ -16,7 +16,7 @@ set (sources
   "src/hash_table_mod.F90"
 )
 
-add_library (fortran_container ${sources})
+add_library (fortran_container SHARED ${sources})
 set_property (TARGET fortran_container PROPERTY VERSION ${version})
 set_property (TARGET fortran_container PROPERTY SOVERSION 1)
 
