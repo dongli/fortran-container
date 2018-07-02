@@ -50,9 +50,9 @@ contains
 
     class(linked_list_type), intent(inout) :: this
     character(*), intent(in) :: key
-    class(*), intent(in), target :: value
+    class(*), intent(in) :: value
 
-    class(linked_list_item_type), pointer :: item
+    type(linked_list_item_type), pointer :: item
 
     item => this%item(key)
 
