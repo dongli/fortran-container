@@ -3,8 +3,8 @@ module linked_list_mod
   implicit none
 
   type linked_list_item_type
-    class(linked_list_item_type), pointer :: prev => null()
-    class(linked_list_item_type), pointer :: next => null()
+    type(linked_list_item_type), pointer :: prev => null()
+    type(linked_list_item_type), pointer :: next => null()
     character(:), allocatable :: key
     class(*), pointer :: value => null()
   contains
@@ -13,8 +13,8 @@ module linked_list_mod
 
   type linked_list_type
     integer :: size = 0
-    class(linked_list_item_type), pointer :: first_item => null()
-    class(linked_list_item_type), pointer :: last_item => null()
+    type(linked_list_item_type), pointer :: first_item => null()
+    type(linked_list_item_type), pointer :: last_item => null()
   contains
     procedure :: insert_item => linked_list_insert_item
     procedure :: remove_item => linked_list_remove_item
@@ -30,9 +30,9 @@ contains
 
     class(linked_list_type), intent(in) :: this
     character(*), intent(in) :: key
-    class(linked_list_item_type), pointer :: linked_list_item
+    type(linked_list_item_type), pointer :: linked_list_item
 
-    class(linked_list_item_type), pointer :: item
+    type(linked_list_item_type), pointer :: item
 
     item => this%first_item
     do while (associated(item))
@@ -81,7 +81,7 @@ contains
     character(*), intent(in) :: key
     class(*), pointer :: linked_list_value
 
-    class(linked_list_item_type), pointer :: item
+    type(linked_list_item_type), pointer :: item
 
     item => this%item(key)
     if (associated(item)) then
@@ -95,7 +95,7 @@ contains
   subroutine linked_list_insert_item(this, item)
 
     class(linked_list_type), intent(inout) :: this
-    class(linked_list_item_type), intent(inout), pointer :: item
+    type(linked_list_item_type), intent(inout), pointer :: item
 
     nullify(item%next)
     if (associated(this%last_item)) then
@@ -113,7 +113,7 @@ contains
   subroutine linked_list_remove_item(this, item)
 
     class(linked_list_type), intent(inout) :: this
-    class(linked_list_item_type), intent(inout), pointer :: item
+    type(linked_list_item_type), intent(inout), pointer :: item
 
     deallocate(item%value)
     if (associated(this%first_item, item)) then
