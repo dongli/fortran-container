@@ -1,7 +1,7 @@
 program hash_table_test
 
   use unit_test
-  use hash_table_mod
+  use hash_table_mod, hash_table_iterator => hash_table_iterator
 
   implicit none
 
