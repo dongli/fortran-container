@@ -11,6 +11,16 @@ module linked_list_mod
     final :: linked_list_item_finalize
   end type linked_list_item_type
 
+  type linked_list_iterator_type
+    type(linked_list_type), pointer :: list => null()
+    type(linked_list_item_type), pointer :: item
+    type(linked_list_item_type), pointer :: next_item
+    class(*), pointer :: value
+  contains
+    procedure :: ended => linked_list_iterator_ended
+    procedure :: next => linked_list_iterator_next
+  end type linked_list_iterator_type
+
   type linked_list_type
     integer :: size = 0
     type(linked_list_item_type), pointer :: first_item => null()
@@ -21,10 +31,74 @@ module linked_list_mod
     procedure :: item => linked_list_item
     procedure :: insert => linked_list_insert
     procedure :: value => linked_list_value
+    procedure :: first_value => linked_list_first_value
+    procedure :: last_value => linked_list_last_value
+    procedure :: clear => linked_list_clear
     final :: linked_list_finalize
   end type linked_list_type
 
 contains
+
+  function linked_list_iterator(list)
+
+    type(linked_list_type), intent(in), target :: list
+    type(linked_list_iterator_type) linked_list_iterator
+
+    linked_list_iterator%list => list
+    linked_list_iterator%item => list%first_item
+    linked_list_iterator%next_item => list%first_item%next
+    if (associated(list%first_item)) then
+      linked_list_iterator%value => list%first_item%value
+    end if
+
+  end function linked_list_iterator
+
+  function linked_list_iterator_ended(this)
+
+    class(linked_list_iterator_type), intent(in) :: this
+    logical linked_list_iterator_ended
+
+    linked_list_iterator_ended = .not. associated(this%item)
+
+  end function linked_list_iterator_ended
+
+  subroutine linked_list_iterator_next(this)
+
+    class(linked_list_iterator_type), intent(inout) :: this
+
+    this%item => this%next_item
+    nullify(this%value)
+    nullify(this%next_item)
+    if (associated(this%item)) then
+      this%value => this%item%value
+      this%next_item => this%item%next
+    end if
+
+  end subroutine linked_list_iterator_next
+
+  function linked_list_first_value(this)
+
+    class(linked_list_type), intent(in) :: this
+    class(*), pointer :: linked_list_first_value
+
+    nullify(linked_list_first_value)
+    if (associated(this%first_item)) then
+      linked_list_first_value => this%first_item%value
+    end if
+
+  end function linked_list_first_value
+
+  function linked_list_last_value(this)
+
+    class(linked_list_type), intent(in) :: this
+    class(*), pointer :: linked_list_last_value
+
+    nullify(linked_list_last_value)
+    if (associated(this%first_item)) then
+      linked_list_last_value => this%last_item%value
+    end if
+
+  end function linked_list_last_value
 
   function linked_list_item(this, key)
 
@@ -136,6 +210,14 @@ contains
     this%size = this%size - 1
 
   end subroutine linked_list_remove_item
+
+  subroutine linked_list_clear(this)
+
+    class(linked_list_type), intent(inout) :: this
+
+    call linked_list_finalize(this)
+
+  end subroutine linked_list_clear
 
   subroutine linked_list_item_finalize(this)
 

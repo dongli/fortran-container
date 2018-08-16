@@ -9,13 +9,13 @@ module hash_table_mod
   end type hash_table_item_type
 
   type hash_table_iterator_type
-    type(hash_table_type), pointer :: table
+    type(hash_table_type), pointer :: table => null()
     integer key_index
     character(:), allocatable :: key
     character(:), allocatable :: next_key
     class(*), pointer :: value
   contains
-    procedure :: ended => hash_table_ended
+    procedure :: ended => hash_table_iterator_ended
     procedure :: next => hash_table_iterator_next
   end type hash_table_iterator_type
 
@@ -80,6 +80,9 @@ contains
 
     class(hash_table_type), intent(inout) :: this
 
+    print *, '[Error]: hash_table_mod: We need to implement hash_table_expand subroutine!'
+    stop 5
+
   end subroutine hash_table_expand
 
   subroutine hash_table_insert(this, key, value)
@@ -140,14 +143,14 @@ contains
 
   end function hash_table_iterator
 
-  function hash_table_ended(this)
+  function hash_table_iterator_ended(this)
 
     class(hash_table_iterator_type), intent(in) :: this
-    logical hash_table_ended
+    logical hash_table_iterator_ended
 
-    hash_table_ended = this%key_index > this%table%size
+    hash_table_iterator_ended = this%key_index > this%table%size
 
-  end function hash_table_ended
+  end function hash_table_iterator_ended
 
   subroutine hash_table_iterator_next(this)
 
