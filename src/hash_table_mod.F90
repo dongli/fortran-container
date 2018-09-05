@@ -51,6 +51,7 @@ contains
 
   end function hash_code
 
+  ! FIXME: When table is expanded, the index may be changed!
   ! index_number = hash_code mod table_size
   function hash_table_index_number(this, hash_code)
 
@@ -58,7 +59,7 @@ contains
     integer, intent(in) :: hash_code
     integer hash_table_index_number
 
-    hash_table_index_number = mod(hash_code, size(this%items))
+    hash_table_index_number = mod(hash_code, size(this%items)) + 1
 
   end function hash_table_index_number
 
