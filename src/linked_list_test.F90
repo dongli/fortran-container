@@ -6,6 +6,7 @@ program list_test
   implicit none
 
   type(linked_list_type) list
+  class(*), pointer :: val
 
   call test_case_init()
 
@@ -17,7 +18,8 @@ program list_test
   call assert_equal(list%size, 1, __FILE__, __LINE__)
   call assert_true(associated(list%item('foo')), __FILE__, __LINE__)
   call assert_true(associated(list%value('foo')), __FILE__, __LINE__)
-  select type (val => list%value('foo'))
+  val => list%value('foo')
+  select type (val)
   type is (integer)
     call assert_equal(val, 1, __FILE__, __LINE__)
   class default
@@ -28,7 +30,8 @@ program list_test
   call assert_equal(list%size, 1, __FILE__, __LINE__)
   call assert_true(associated(list%item('foo')), __FILE__, __LINE__)
   call assert_true(associated(list%value('foo')), __FILE__, __LINE__)
-  select type (val => list%value('foo'))
+  val => list%value('foo')
+  select type (val)
   type is (real)
     call assert_equal(val, 4.2, __FILE__, __LINE__)
   class default
@@ -39,7 +42,8 @@ program list_test
   call assert_equal(list%size, 1, __FILE__, __LINE__)
   call assert_true(associated(list%item('foo')), __FILE__, __LINE__)
   call assert_true(associated(list%value('foo')), __FILE__, __LINE__)
-  select type (val => list%value('foo'))
+  val => list%value('foo')
+  select type (val)
   type is (character(*))
     call assert_equal(val, 'bar', __FILE__, __LINE__)
   class default
