@@ -120,23 +120,27 @@ contains
 
   end function linked_list_item
 
-  subroutine linked_list_insert(this, key, value)
+  subroutine linked_list_insert(this, key, value, nodup)
 
     class(linked_list_type), intent(inout) :: this
     character(*), intent(in) :: key
     class(*), intent(in) :: value
+    logical, intent(in), optional :: nodup
 
     type(linked_list_item_type), pointer :: item
 
-    item => this%item(key)
-
-    if (associated(item)) then
-      if (same_type_as(value, item%value)) then
-        deallocate(item%value)
-        allocate(item%value, source=value)
-      else
-        call this%remove_item(item)
+    if (present(nodup) .and. nodup) then
+      item => this%item(key)
+      if (associated(item)) then
+        if (same_type_as(value, item%value)) then
+          deallocate(item%value)
+          allocate(item%value, source=value)
+        else
+          call this%remove_item(item)
+        end if
       end if
+    else
+      nullify(item)
     end if
 
     if (.not. associated(item)) then
