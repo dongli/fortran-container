@@ -99,7 +99,7 @@ contains
       this%size = this%size + 1
       this%keys(this%size) = key
     end if
-    call this%items(i)%chain%insert(key, value)
+    call this%items(i)%chain%insert(key, value, nodup=.true.)
 
   end subroutine hash_table_insert
 
