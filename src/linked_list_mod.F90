@@ -46,8 +46,8 @@ contains
 
     linked_list_iterator%list => list
     linked_list_iterator%item => list%first_item
-    linked_list_iterator%next_item => list%first_item%next
     if (associated(list%first_item)) then
+      linked_list_iterator%next_item => list%first_item%next
       linked_list_iterator%value => list%first_item%value
     end if
 
