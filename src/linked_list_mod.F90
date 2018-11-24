@@ -29,7 +29,9 @@ module linked_list_mod
     procedure :: insert_item => linked_list_insert_item
     procedure :: remove_item => linked_list_remove_item
     procedure :: item => linked_list_item
-    procedure :: insert => linked_list_insert
+    procedure, private :: insert1 => linked_list_insert1
+    procedure, private :: insert2 => linked_list_insert2
+    generic :: insert => insert1, insert2
     procedure :: value => linked_list_value
     procedure :: first_value => linked_list_first_value
     procedure :: last_value => linked_list_last_value
@@ -120,7 +122,7 @@ contains
 
   end function linked_list_item
 
-  subroutine linked_list_insert(this, key, value, nodup)
+  subroutine linked_list_insert1(this, key, value, nodup)
 
     class(linked_list_type), intent(inout) :: this
     character(*), intent(in) :: key
@@ -151,7 +153,20 @@ contains
       allocate(item%value, source=value)
     end if
 
-  end subroutine linked_list_insert
+  end subroutine linked_list_insert1
+
+  subroutine linked_list_insert2(this, value)
+
+    class(linked_list_type), intent(inout) :: this
+    class(*), intent(in) :: value
+
+    type(linked_list_item_type), pointer :: item
+
+    allocate(item)
+    call this%insert_item(item)
+    allocate(item%value, source=value)
+
+  end subroutine linked_list_insert2
 
   function linked_list_value(this, key)
 
