@@ -32,6 +32,9 @@ module linked_list_mod
     procedure, private :: insert1 => linked_list_insert1
     procedure, private :: insert2 => linked_list_insert2
     generic :: insert => insert1, insert2
+    procedure, private :: insert_ptr1 => linked_list_insert_ptr1
+    procedure, private :: insert_ptr2 => linked_list_insert_ptr2
+    generic :: insert_ptr => insert_ptr1, insert_ptr2
     procedure :: value => linked_list_value
     procedure :: first_value => linked_list_first_value
     procedure :: last_value => linked_list_last_value
@@ -167,6 +170,51 @@ contains
     allocate(item%value, source=value)
 
   end subroutine linked_list_insert2
+
+  subroutine linked_list_insert_ptr1(this, key, value, nodup)
+
+    class(linked_list_type), intent(inout) :: this
+    character(*), intent(in) :: key
+    class(*), intent(in), target :: value
+    logical, intent(in), optional :: nodup
+
+    type(linked_list_item_type), pointer :: item
+
+    if (present(nodup) .and. nodup) then
+      item => this%item(key)
+      if (associated(item)) then
+        if (same_type_as(value, item%value)) then
+          deallocate(item%value)
+          allocate(item%value, source=value)
+        else
+          call this%remove_item(item)
+        end if
+      end if
+    else
+      nullify(item)
+    end if
+
+    if (.not. associated(item)) then
+      allocate(item)
+      item%key = key
+      call this%insert_item(item)
+      item%value => value
+    end if
+
+  end subroutine linked_list_insert_ptr1
+
+  subroutine linked_list_insert_ptr2(this, value)
+
+    class(linked_list_type), intent(inout) :: this
+    class(*), intent(in), target :: value
+
+    type(linked_list_item_type), pointer :: item
+
+    allocate(item)
+    call this%insert_item(item)
+    item%value => value
+
+  end subroutine linked_list_insert_ptr2
 
   function linked_list_value(this, key)
 
