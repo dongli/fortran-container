@@ -158,9 +158,11 @@ contains
     class(hash_table_iterator_type), intent(inout) :: this
 
     this%key_index = this%key_index + 1
-    this%value => this%table%value(this%next_key)
-    this%key = this%next_key
-    if (this%key_index + 1 <= this%table%size) this%next_key = this%table%keys(this%key_index + 1)
+    if (this%key_index <= this%table%size) then
+      this%value => this%table%value(this%next_key)
+      this%key = this%next_key
+      if (this%key_index + 1 <= this%table%size) this%next_key = this%table%keys(this%key_index + 1)
+    end if
 
   end subroutine hash_table_iterator_next
 
