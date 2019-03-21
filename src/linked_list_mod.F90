@@ -6,6 +6,7 @@ module linked_list_mod
     type(linked_list_item_type), pointer :: prev => null()
     type(linked_list_item_type), pointer :: next => null()
     character(:), allocatable :: key
+    logical :: internal_memory = .true.
     class(*), pointer :: value => null()
   contains
     final :: linked_list_item_finalize
@@ -141,6 +142,7 @@ contains
         if (same_type_as(value, item%value)) then
           deallocate(item%value)
           allocate(item%value, source=value)
+          item%internal_memory = .true.
         else
           call this%remove_item(item)
         end if
@@ -169,6 +171,7 @@ contains
     allocate(item)
     call this%insert_item(item)
     allocate(item%value, source=value)
+    item%internal_memory = .true.
 
   end subroutine linked_list_insert2
 
@@ -185,8 +188,8 @@ contains
       item => this%item(key)
       if (associated(item)) then
         if (same_type_as(value, item%value)) then
-          deallocate(item%value)
-          allocate(item%value, source=value)
+          item%value => value
+          item%internal_memory = .false.
         else
           call this%remove_item(item)
         end if
@@ -200,6 +203,7 @@ contains
       item%key = key
       call this%insert_item(item)
       item%value => value
+      item%internal_memory = .false.
     end if
 
   end subroutine linked_list_insert_ptr1
@@ -214,6 +218,7 @@ contains
     allocate(item)
     call this%insert_item(item)
     item%value => value
+    item%internal_memory = .false.
 
   end subroutine linked_list_insert_ptr2
 
@@ -314,7 +319,7 @@ contains
 
     type(linked_list_item_type), intent(inout) :: this
 
-    if (associated(this%value)) deallocate(this%value)
+    if (this%internal_memory .and. associated(this%value)) deallocate(this%value)
 
   end subroutine linked_list_item_finalize
 

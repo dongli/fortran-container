@@ -99,6 +99,11 @@ program list_test
   class default
     call assert_failure(__FILE__, __LINE__)
   end select
+
+  ! Test if linked_list will not deallocate external memory y.
+  call list%clear()
+  call assert_true(associated(y))
+
   deallocate(y)
 
   call test_case_report('Test linked list type')
