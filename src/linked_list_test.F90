@@ -92,6 +92,13 @@ program list_test
   class default
     call assert_failure(__FILE__, __LINE__)
   end select
+  val => list%value_at(4)
+  select type (val)
+  type is (test_type)
+    call assert_equal(val%i, y%i, __FILE__, __LINE__)
+  class default
+    call assert_failure(__FILE__, __LINE__)
+  end select
   deallocate(y)
 
   call test_case_report('Test linked list type')

@@ -36,6 +36,7 @@ module linked_list_mod
     procedure, private :: insert_ptr2 => linked_list_insert_ptr2
     generic :: insert_ptr => insert_ptr1, insert_ptr2
     procedure :: value => linked_list_value
+    procedure :: value_at => linked_list_value_at
     procedure :: first_value => linked_list_first_value
     procedure :: last_value => linked_list_last_value
     procedure :: clear => linked_list_clear
@@ -216,22 +217,45 @@ contains
 
   end subroutine linked_list_insert_ptr2
 
-  function linked_list_value(this, key)
+  function linked_list_value(this, key) result(res)
 
     class(linked_list_type), intent(in) :: this
     character(*), intent(in) :: key
-    class(*), pointer :: linked_list_value
+    class(*), pointer :: res
 
     type(linked_list_item_type), pointer :: item
 
     item => this%item(key)
     if (associated(item)) then
-      linked_list_value => item%value
+      res => item%value
     else
-      nullify(linked_list_value)
+      nullify(res)
     end if
 
   end function linked_list_value
+
+  function linked_list_value_at(this, index) result(res)
+
+    class(linked_list_type), intent(in) :: this
+    integer, intent(in) :: index
+    class(*), pointer :: res
+
+    integer i
+    type(linked_list_item_type), pointer :: item
+
+    item => this%first_item
+    do i = 1, this%size
+      if (i == index) then
+        res => item%value
+        return
+      else if (i > index) then
+        nullify(res)
+        return
+      end if
+      item => item%next
+    end do
+
+  end function linked_list_value_at
 
   subroutine linked_list_insert_item(this, item)
 
