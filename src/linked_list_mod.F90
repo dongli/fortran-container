@@ -1,3 +1,16 @@
+! ------------------------------------------------------------------------------
+! linked_list_mod
+!
+! Description:
+!
+!   This is an implementation of double linked list data structure in Fortran.
+!   It uses polymorphic pointer heavily, so a modern Fortran compiler is needed.
+!
+! Author:
+!
+!   - Li Dong <dongli@lasg.iap.ac.cn>
+! ------------------------------------------------------------------------------
+
 module linked_list_mod
 
   implicit none
@@ -27,11 +40,13 @@ module linked_list_mod
     type(linked_list_item_type), pointer :: first_item => null()
     type(linked_list_item_type), pointer :: last_item => null()
   contains
+    ! Internal item methods
     procedure :: append_item => linked_list_append_item
     procedure :: insert_item_after => linked_list_insert_item_after
     procedure :: remove_item => linked_list_remove_item
     procedure :: item => linked_list_item
-    ! Append
+    procedure :: item_at => linked_list_item_at
+    ! Append methods
     ! TODO: Replace insert by append if not given index.
     procedure, private :: append1 => linked_list_append1
     procedure, private :: append2 => linked_list_append2
@@ -39,7 +54,7 @@ module linked_list_mod
     procedure, private :: append_ptr1 => linked_list_append_ptr1
     procedure, private :: append_ptr2 => linked_list_append_ptr2
     generic :: append_ptr => append_ptr1, append_ptr2
-    ! Insert
+    ! Insert methods
     procedure, private :: insert1 => linked_list_insert1
     procedure, private :: insert2 => linked_list_insert2
     generic :: insert => insert1, insert2
@@ -48,18 +63,19 @@ module linked_list_mod
     generic :: insert_ptr => insert_ptr1, insert_ptr2
     procedure :: insert_ptr_at => linked_list_insert_ptr_at
     procedure :: insert_ptr_after => linked_list_insert_ptr_after
-    ! Value
+    ! Value methods
     procedure :: value => linked_list_value
     procedure :: value_at => linked_list_value_at
     procedure :: first_value => linked_list_first_value
     procedure :: last_value => linked_list_last_value
-    ! Delete
-    procedure :: delete => linked_list_delete
+    ! Delete methods
+    procedure :: delete_ptr => linked_list_delete_ptr
     procedure :: delete_at => linked_list_delete_at
-    ! Replace
-    procedure :: replace => linked_list_replace
-    ! Clear
+    ! Replace methods
+    procedure :: replace_ptr => linked_list_replace_ptr
+    ! Clear method
     procedure :: clear => linked_list_clear
+    ! Finalizer
     final :: linked_list_finalize
   end type linked_list_type
 
@@ -93,90 +109,98 @@ contains
     class(linked_list_iterator_type), intent(inout) :: this
 
     this%item => this%next_item
-    nullify(this%value)
-    nullify(this%next_item)
     if (associated(this%item)) then
       this%value => this%item%value
       this%next_item => this%item%next
+    else
+      this%value => null()
+      this%next_item => null()
     end if
 
   end subroutine linked_list_iterator_next
 
-  function linked_list_first_value(this)
+  function linked_list_first_value(this) result(res)
 
     class(linked_list_type), intent(in) :: this
-    class(*), pointer :: linked_list_first_value
+    class(*), pointer :: res
 
-    nullify(linked_list_first_value)
     if (associated(this%first_item)) then
-      linked_list_first_value => this%first_item%value
+      res => this%first_item%value
+    else
+      res => null()
     end if
 
   end function linked_list_first_value
 
-  function linked_list_last_value(this)
+  function linked_list_last_value(this) result(res)
 
     class(linked_list_type), intent(in) :: this
-    class(*), pointer :: linked_list_last_value
+    class(*), pointer :: res
 
-    nullify(linked_list_last_value)
     if (associated(this%first_item)) then
-      linked_list_last_value => this%last_item%value
+      res => this%last_item%value
+    else
+      res => null()
     end if
 
   end function linked_list_last_value
 
-  function linked_list_item(this, key)
+  function linked_list_item(this, key) result(res)
 
     class(linked_list_type), intent(in) :: this
     character(*), intent(in) :: key
-    type(linked_list_item_type), pointer :: linked_list_item
+    type(linked_list_item_type), pointer :: res
 
     type(linked_list_item_type), pointer :: item
 
     item => this%first_item
     do while (associated(item))
       if (item%key == key) then
-        linked_list_item => item
+        res => item
         return
       end if
       item => item%next
     end do
-    nullify(linked_list_item)
+    res => null()
 
   end function linked_list_item
 
-  subroutine linked_list_append1(this, key, value, nodup)
+  function linked_list_item_at(this, index) result(res)
+
+    class(linked_list_type), intent(in) :: this
+    integer, intent(in) :: index
+    type(linked_list_item_type), pointer :: res
+
+    type(linked_list_item_type), pointer :: item
+    integer i
+
+    item => this%first_item
+    i = 1
+    do while (associated(item))
+      if (i == index) then
+        res => item
+	return
+      end if
+      item => item%next
+      i = i + 1
+    end do
+    res => null()
+
+  end function linked_list_item_at
+
+  subroutine linked_list_append1(this, key, value)
 
     class(linked_list_type), intent(inout) :: this
     character(*), intent(in) :: key
     class(*), intent(in) :: value
-    logical, intent(in), optional :: nodup
 
     type(linked_list_item_type), pointer :: item
 
-    if (present(nodup) .and. nodup) then
-      item => this%item(key)
-      if (associated(item)) then
-        if (same_type_as(value, item%value)) then
-          deallocate(item%value)
-          allocate(item%value, source=value)
-          item%internal_memory = .true.
-        else
-          call this%remove_item(item)
-        end if
-      end if
-    else
-      nullify(item)
-    end if
-
-    if (.not. associated(item)) then
-      ! NOTE: We need to allocate the memory for the item with correct type.
-      allocate(item)
-      item%key = key
-      call this%append_item(item)
-      allocate(item%value, source=value)
-    end if
+    allocate(item)
+    item%key = key
+    call this%append_item(item)
+    allocate(item%value, source=value)
+    item%internal_memory = .true.
 
   end subroutine linked_list_append1
 
@@ -194,36 +218,19 @@ contains
 
   end subroutine linked_list_append2
 
-  subroutine linked_list_append_ptr1(this, key, value, nodup)
+  subroutine linked_list_append_ptr1(this, key, value)
 
     class(linked_list_type), intent(inout) :: this
     character(*), intent(in) :: key
     class(*), intent(in), target :: value
-    logical, intent(in), optional :: nodup
 
     type(linked_list_item_type), pointer :: item
 
-    if (present(nodup) .and. nodup) then
-      item => this%item(key)
-      if (associated(item)) then
-        if (same_type_as(value, item%value)) then
-          item%value => value
-          item%internal_memory = .false.
-        else
-          call this%remove_item(item)
-        end if
-      end if
-    else
-      nullify(item)
-    end if
-
-    if (.not. associated(item)) then
-      allocate(item)
-      item%key = key
-      call this%append_item(item)
-      item%value => value
-      item%internal_memory = .false.
-    end if
+    allocate(item)
+    item%key = key
+    call this%append_item(item)
+    item%value => value
+    item%internal_memory = .false.
 
   end subroutine linked_list_append_ptr1
 
@@ -253,24 +260,16 @@ contains
     if (present(nodup) .and. nodup) then
       item => this%item(key)
       if (associated(item)) then
-        if (same_type_as(value, item%value)) then
-          deallocate(item%value)
-          allocate(item%value, source=value)
-          item%internal_memory = .true.
-        else
-          call this%remove_item(item)
-        end if
+        if (item%internal_memory) deallocate(item%value)
+        allocate(item%value, source=value)
+        item%internal_memory = .true.
       end if
     else
-      nullify(item)
-    end if
-
-    if (.not. associated(item)) then
-      ! NOTE: We need to allocate the memory for the item with correct type.
       allocate(item)
       item%key = key
       call this%append_item(item)
       allocate(item%value, source=value)
+      item%internal_memory = .true.
     end if
 
   end subroutine linked_list_insert1
@@ -301,18 +300,11 @@ contains
     if (present(nodup) .and. nodup) then
       item => this%item(key)
       if (associated(item)) then
-        if (same_type_as(value, item%value)) then
-          item%value => value
-          item%internal_memory = .false.
-        else
-          call this%remove_item(item)
-        end if
+        if (item%internal_memory) deallocate(item%value)
+        item%value => value
+        item%internal_memory = .false.
       end if
     else
-      nullify(item)
-    end if
-
-    if (.not. associated(item)) then
       allocate(item)
       item%key = key
       call this%append_item(item)
@@ -350,6 +342,7 @@ contains
       if (i == index) then
         if (item%internal_memory) deallocate(item%value)
         item%value => value
+        item%internal_memory = .false.
         return
       else if (i > index) then
         return
@@ -372,11 +365,12 @@ contains
     do i = 1, this%size
       if (associated(item1%value, value1)) then
         allocate(item2)
-        call this%append_item(item2)
+        call this%insert_item_after(item1, item2)
         item2%value => value2
         item2%internal_memory = .false.
         return
       end if
+      item1 => item1%next
     end do
 
   end subroutine linked_list_insert_ptr_after
@@ -393,7 +387,7 @@ contains
     if (associated(item)) then
       res => item%value
     else
-      nullify(res)
+      res => null()
     end if
 
   end function linked_list_value
@@ -413,7 +407,7 @@ contains
         res => item%value
         return
       else if (i > index) then
-        nullify(res)
+        res => null()
         return
       end if
       item => item%next
@@ -426,7 +420,7 @@ contains
     class(linked_list_type), intent(inout) :: this
     type(linked_list_item_type), intent(inout), pointer :: item
 
-    nullify(item%next)
+    item%next => null()
     if (associated(this%last_item)) then
       item%prev => this%last_item
       this%last_item%next => item
@@ -448,7 +442,7 @@ contains
     item2%prev => item1
     item2%next => item1%next
     item1%next => item2
-    item2%next%prev => item2
+    item1%next%prev => item2
     this%size = this%size + 1
 
   end subroutine linked_list_insert_item_after
@@ -462,25 +456,27 @@ contains
     if (associated(this%first_item, item)) then
       if (associated(this%first_item%next)) then
         this%first_item => this%first_item%next
-        nullify(this%first_item%prev)
+        this%first_item%prev => null()
       else
-        nullify(this%first_item)
+        this%first_item => null()
       end if
-    end if
-    if (associated(this%last_item, item)) then
+    else if (associated(this%last_item, item)) then
       if (associated(this%last_item%prev)) then
         this%last_item => this%last_item%prev
-        nullify(this%last_item%next)
+        this%last_item%next => null()
       else
-        nullify(this%last_item)
+        this%last_item => null()
       end if
+    else
+      if (associated(item%prev)) item%prev%next => item%next
+      if (associated(item%next)) item%next%prev => item%prev
     end if
     deallocate(item)
     this%size = this%size - 1
 
   end subroutine linked_list_remove_item
 
-  subroutine linked_list_delete(this, value)
+  subroutine linked_list_delete_ptr(this, value)
 
     class(linked_list_type), intent(inout) :: this
     class(*), intent(in), target :: value
@@ -497,7 +493,7 @@ contains
       item => item%next
     end do
 
-  end subroutine linked_list_delete
+  end subroutine linked_list_delete_ptr
 
   subroutine linked_list_delete_at(this, index)
 
@@ -518,6 +514,10 @@ contains
 
   end subroutine linked_list_delete_at
 
+  ! ------------------------------------------------------------------------------
+  !                                Clear method
+  ! ------------------------------------------------------------------------------
+
   subroutine linked_list_clear(this)
 
     class(linked_list_type), intent(inout) :: this
@@ -526,7 +526,11 @@ contains
 
   end subroutine linked_list_clear
 
-  subroutine linked_list_replace(this, old_value, new_value)
+  ! ----------------------------------------------------------------------------
+  !                              Replace methods
+  ! ----------------------------------------------------------------------------
+
+  subroutine linked_list_replace_ptr(this, old_value, new_value)
 
     class(linked_list_type), intent(inout) :: this
     class(*), intent(in), target :: old_value
@@ -539,12 +543,17 @@ contains
       if (associated(iterator%value, old_value)) then
         if (iterator%item%internal_memory) deallocate(iterator%item%value)
         iterator%item%value => new_value
+        iterator%item%internal_memory = .false.
         return
       end if
       call iterator%next()
     end do
 
-  end subroutine linked_list_replace
+  end subroutine linked_list_replace_ptr
+
+  ! ----------------------------------------------------------------------------
+  !                               Finalizers
+  ! ----------------------------------------------------------------------------
 
   subroutine linked_list_item_finalize(this)
 
@@ -567,6 +576,8 @@ contains
       item1 => item2
     end do
     this%size = 0
+    this%first_item => null()
+    this%last_item => null()
 
   end subroutine linked_list_finalize
 

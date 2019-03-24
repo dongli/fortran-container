@@ -8,7 +8,7 @@ program array_test
   type(array_type) a, b
   real, target :: c
 
-  call test_case_init()
+  call test_suite_init('Array tests')
 
   call test_case_create('Test array type')
 
@@ -44,8 +44,8 @@ program array_test
     call assert_failure(__FILE__, __LINE__)
   end select
 
-  call test_case_report('Test array type')
+  call test_suite_report()
 
-  call test_case_final()
+  call test_suite_final()
 
 end program array_test

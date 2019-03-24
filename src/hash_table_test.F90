@@ -10,7 +10,7 @@ program hash_table_test
 
   integer count
 
-  call test_case_init()
+  call test_suite_init('Hash table tests')
 
   call test_case_create('Test hash table type')
 
@@ -78,8 +78,8 @@ program hash_table_test
   end do
   call assert_equal(count, 2)
 
-  call test_case_report('Test hash table type')
+  call test_suite_report()
 
-  call test_case_final()
+  call test_suite_final()
 
 end program hash_table_test
