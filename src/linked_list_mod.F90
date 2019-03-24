@@ -263,14 +263,14 @@ contains
         if (item%internal_memory) deallocate(item%value)
         allocate(item%value, source=value)
         item%internal_memory = .true.
+        return
       end if
-    else
-      allocate(item)
-      item%key = key
-      call this%append_item(item)
-      allocate(item%value, source=value)
-      item%internal_memory = .true.
     end if
+    allocate(item)
+    item%key = key
+    call this%append_item(item)
+    allocate(item%value, source=value)
+    item%internal_memory = .true.
 
   end subroutine linked_list_insert1
 
