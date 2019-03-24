@@ -5,7 +5,8 @@ program array_test
 
   implicit none
 
-  type(array_type) a
+  type(array_type) a, b
+  real, target :: c
 
   call test_case_init()
 
@@ -20,6 +21,25 @@ program array_test
   select type (val => a%value_at(1))
   type is (integer)
     call assert_equal(val, 1, __FILE__, __LINE__)
+  class default
+    call assert_failure(__FILE__, __LINE__)
+  end select
+
+  c = 1.5
+  call a%append_ptr(c)
+  b = a
+  call a%clear()
+  call assert_equal(b%size, 2, __FILE__, __LINE__)
+  call assert_true(associated(b%value_at(2), c))
+  select type (val => b%value_at(1))
+  type is (integer)
+    call assert_equal(val, 1, __FILE__, __LINE__)
+  class default
+    call assert_failure(__FILE__, __LINE__)
+  end select
+  select type (val => b%value_at(2))
+  type is (real)
+    call assert_equal(val, c, __FILE__, __LINE__)
   class default
     call assert_failure(__FILE__, __LINE__)
   end select

@@ -21,6 +21,9 @@ module array_mod
     procedure :: insert_at => array_insert_at
     procedure :: insert_ptr_at => array_insert_ptr_at
     procedure :: value_at => array_value_at
+    procedure, private :: array_assign
+    generic :: assignment(=) => array_assign
+    procedure :: clear => array_clear
     final :: array_finalize
   end type array_type
 
@@ -101,7 +104,7 @@ contains
     class(*), intent(in) :: value
 
     if (index > this%size) stop __FILE__ // ': Index exceeds array size!'
-    deallocate(this%items(index)%value)
+    if (this%items(index)%internal_memory) deallocate(this%items(index)%value)
     allocate(this%items(index)%value, source=value)
     this%items(index)%internal_memory = .true.
 
@@ -114,6 +117,7 @@ contains
     class(*), intent(in), target :: value
 
     if (index > this%size) stop __FILE__ // ': Index exceeds array size!'
+    if (this%items(index)%internal_memory) deallocate(this%items(index)%value)
     this%items(index)%value => value
     this%items(index)%internal_memory = .false.
 
@@ -121,7 +125,7 @@ contains
 
   function array_value_at(this, index) result(res)
 
-    class(array_type), intent(inout) :: this
+    class(array_type), intent(in) :: this
     integer, intent(in) :: index
     class(*), pointer :: res
 
@@ -129,6 +133,36 @@ contains
     res => this%items(index)%value
 
   end function array_value_at
+
+  subroutine array_assign(this, that)
+
+    class(array_type), intent(inout) :: this
+    class(array_type), intent(in) :: that
+
+    integer i
+
+    call this%clear()
+    allocate(this%items(that%capacity))
+    this%capacity = that%capacity
+    do i = 1, that%size
+      if (that%items(i)%internal_memory) then
+        call this%append(that%items(i)%value)
+      else
+        call this%append_ptr(that%items(i)%value)
+      end if
+    end do
+
+  end subroutine array_assign
+
+  subroutine array_clear(this)
+
+    class(array_type), intent(inout) :: this
+
+    if (allocated(this%items)) deallocate(this%items)
+    this%capacity = 0
+    this%size = 0
+
+  end subroutine array_clear
 
   subroutine array_item_finalize(this)
 
@@ -142,7 +176,7 @@ contains
 
     type(array_type), intent(inout) :: this
 
-    if (allocated(this%items)) deallocate(this%items)
+    call this%clear()
 
   end subroutine array_finalize
 
