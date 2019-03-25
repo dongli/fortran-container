@@ -54,6 +54,8 @@ module linked_list_mod
     procedure, private :: append_ptr1 => linked_list_append_ptr1
     procedure, private :: append_ptr2 => linked_list_append_ptr2
     generic :: append_ptr => append_ptr1, append_ptr2
+    ! Close methods
+    procedure :: close_ptr => linked_list_close_ptr
     ! Insert methods
     procedure, private :: insert1 => linked_list_insert1
     procedure, private :: insert2 => linked_list_insert2
@@ -179,7 +181,7 @@ contains
     do while (associated(item))
       if (i == index) then
         res => item
-	return
+        return
       end if
       item => item%next
       i = i + 1
@@ -247,6 +249,19 @@ contains
     item%internal_memory = .false.
 
   end subroutine linked_list_append_ptr2
+
+  subroutine linked_list_close_ptr(this, value)
+
+    class(linked_list_type), intent(inout) :: this
+    class(*), intent(in), optional :: value
+
+    if (present(value)) call this%append_ptr(value)
+
+    ! Connect first and last item.
+    this%first_item%prev => this%last_item
+    this%last_item%next => this%first_item
+
+  end subroutine linked_list_close_ptr
 
   subroutine linked_list_insert1(this, key, value, nodup)
 
@@ -530,17 +545,18 @@ contains
   !                              Replace methods
   ! ----------------------------------------------------------------------------
 
-  subroutine linked_list_replace_ptr(this, old_value, new_value)
+  subroutine linked_list_replace_ptr(this, old_value, new_value, old_value2)
 
     class(linked_list_type), intent(inout) :: this
     class(*), intent(in), target :: old_value
     class(*), intent(in), target :: new_value
+    class(*), intent(in), target, optional :: old_value2
 
     type(linked_list_iterator_type) iterator
 
     iterator = linked_list_iterator(this)
     do while (.not. iterator%ended())
-      if (associated(iterator%value, old_value)) then
+      if (associated(iterator%value, old_value) .or. (present(old_value2) .and. associated(iterator%value, old_value2))) then
         if (iterator%item%internal_memory) deallocate(iterator%item%value)
         iterator%item%value => new_value
         iterator%item%internal_memory = .false.

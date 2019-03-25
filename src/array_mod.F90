@@ -21,6 +21,8 @@ module array_mod
     procedure :: insert_at => array_insert_at
     procedure :: insert_ptr_at => array_insert_ptr_at
     procedure :: value_at => array_value_at
+    procedure :: index_ptr => array_index_ptr
+    procedure :: replace_ptr => array_replace_ptr
     procedure, private :: array_assign
     generic :: assignment(=) => array_assign
     procedure :: clear => array_clear
@@ -134,6 +136,42 @@ contains
 
   end function array_value_at
 
+  integer function array_index_ptr(this, value) result(res)
+
+    class(array_type), intent(in) :: this
+    class(*), intent(in), target :: value
+
+    integer i
+
+    do i = 1, this%size
+      if (associated(this%items(i)%value, value)) then
+        res = i
+        return
+      end if
+    end do
+    res = -1
+
+  end function array_index_ptr
+
+  subroutine array_replace_ptr(this, old_value, new_value)
+
+    class(array_type), intent(inout) :: this
+    class(*), intent(in), target :: old_value
+    class(*), intent(in), target :: new_value
+
+    integer i
+
+    do i = 1, this%size
+      if (associated(this%items(i)%value, old_value)) then
+        if (this%items(i)%internal_memory) deallocate(this%items(i)%value)
+        this%items(i)%value => new_value
+        this%items(i)%internal_memory = .false.
+        return
+      end if
+    end do
+
+  end subroutine array_replace_ptr
+
   subroutine array_assign(this, that)
 
     class(array_type), intent(inout) :: this
@@ -158,6 +196,11 @@ contains
 
     class(array_type), intent(inout) :: this
 
+    integer i
+
+    do i = 1, this%size
+      if (this%items(i)%internal_memory) deallocate(this%items(i)%value)
+    end do
     if (allocated(this%items)) deallocate(this%items)
     this%capacity = 0
     this%size = 0
