@@ -56,6 +56,7 @@ module linked_list_mod
     generic :: append_ptr => append_ptr1, append_ptr2
     ! Close methods
     procedure :: close_ptr => linked_list_close_ptr
+    procedure :: closed => linked_list_closed
     ! Insert methods
     procedure, private :: insert1 => linked_list_insert1
     procedure, private :: insert2 => linked_list_insert2
@@ -262,6 +263,14 @@ contains
     this%last_item%next => this%first_item
 
   end subroutine linked_list_close_ptr
+
+  logical function linked_list_closed(this) result(res)
+
+    class(linked_list_type), intent(in) :: this
+
+    res = associated(this%first_item%prev, this%last_item) .and. associated(this%last_item%next, this%first_item)
+
+  end function linked_list_closed
 
   subroutine linked_list_insert1(this, key, value, nodup)
 
