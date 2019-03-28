@@ -74,6 +74,7 @@ module linked_list_mod
     ! Delete methods
     procedure :: delete_ptr => linked_list_delete_ptr
     procedure :: delete_at => linked_list_delete_at
+    procedure :: delete_and_next => linked_list_delete_and_next
     ! Replace methods
     procedure :: replace_ptr => linked_list_replace_ptr
     ! Clear method
@@ -537,6 +538,21 @@ contains
     end do
 
   end subroutine linked_list_delete_at
+
+  subroutine linked_list_delete_and_next(this, iterator)
+
+    class(linked_list_type), intent(inout), target :: this
+    type(linked_list_iterator_type), intent(inout) :: iterator
+
+    type(linked_list_item_type), pointer :: item
+
+    if (associated(iterator%list, this)) then
+      item => iterator%item
+      call iterator%next()
+      call this%remove_item(item)
+    end if
+
+  end subroutine linked_list_delete_and_next
 
   ! ------------------------------------------------------------------------------
   !                                Clear method
