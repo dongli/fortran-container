@@ -455,6 +455,7 @@ contains
       end if
       item => item%next
     end do
+    res => null()
 
   end function linked_list_value_at
 
