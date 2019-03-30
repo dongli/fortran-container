@@ -511,7 +511,7 @@ contains
 
 #ifndef NDEBUG
     if (.not. associated(item%list, this)) then
-      stop __FILE__ // ': insert_item_after: item1 is not in list!'
+      stop __FILE__ // ': remove_item: item is not in list!'
     end if
 #endif
     if (associated(this%first_item, item)) then
