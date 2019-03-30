@@ -615,17 +615,18 @@ contains
     class(*), intent(in), target, optional :: old_value2
     logical, intent(in), optional :: fatal
 
-    type(linked_list_iterator_type) iterator
+    type(linked_list_item_type), pointer :: item
+    integer i
 
-    iterator = linked_list_iterator(this)
-    do while (.not. iterator%ended())
-      if (associated(iterator%value, old_value) .or. (present(old_value2) .and. associated(iterator%value, old_value2))) then
-        if (iterator%item%internal_memory .and. associated(iterator%item%value)) deallocate(iterator%item%value)
-        iterator%item%value => new_value
-        iterator%item%internal_memory = .false.
+    item => this%first_item
+    do i = 1, this%size
+      if (associated(item%value, old_value) .or. (present(old_value2) .and. associated(item%value, old_value2))) then
+        if (item%internal_memory .and. associated(item%value)) deallocate(item%value)
+        item%value => new_value
+        item%internal_memory = .false.
         return
       end if
-      call iterator%next()
+      item => item%next
     end do
     if (.not. present(fatal) .or. fatal) then
       stop 'linked list failed to replace pointer!'
