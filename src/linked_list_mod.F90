@@ -16,6 +16,9 @@ module linked_list_mod
   implicit none
 
   type linked_list_item_type
+#ifndef NDEBUG
+    type(linked_list_type), pointer :: list => null()
+#endif
     type(linked_list_item_type), pointer :: prev => null()
     type(linked_list_item_type), pointer :: next => null()
     character(:), allocatable :: key
@@ -55,8 +58,9 @@ module linked_list_mod
     procedure, private :: append_ptr2 => linked_list_append_ptr2
     generic :: append_ptr => append_ptr1, append_ptr2
     ! Close methods
-    procedure :: close_ptr => linked_list_close_ptr
-    procedure :: closed => linked_list_closed
+    procedure :: cycle => linked_list_cycle
+    procedure :: cycle_ptr => linked_list_cycle_ptr
+    procedure :: cyclic => linked_list_cyclic
     ! Insert methods
     procedure, private :: insert1 => linked_list_insert1
     procedure, private :: insert2 => linked_list_insert2
@@ -252,26 +256,40 @@ contains
 
   end subroutine linked_list_append_ptr2
 
-  subroutine linked_list_close_ptr(this, value)
+  subroutine linked_list_cycle(this)
 
     class(linked_list_type), intent(inout) :: this
-    class(*), intent(in), optional :: value
-
-    if (present(value)) call this%append_ptr(value)
 
     ! Connect first and last item.
     this%first_item%prev => this%last_item
     this%last_item%next => this%first_item
 
-  end subroutine linked_list_close_ptr
+  end subroutine linked_list_cycle
 
-  logical function linked_list_closed(this) result(res)
+  subroutine linked_list_cycle_ptr(this, value)
+
+    class(linked_list_type), intent(inout) :: this
+    class(*), intent(in) :: value
+
+    call this%append_ptr(value)
+
+    ! Connect first and last item.
+    this%first_item%prev => this%last_item
+    this%last_item%next => this%first_item
+
+  end subroutine linked_list_cycle_ptr
+
+  logical function linked_list_cyclic(this) result(res)
 
     class(linked_list_type), intent(in) :: this
 
-    res = associated(this%first_item%prev, this%last_item) .and. associated(this%last_item%next, this%first_item)
+    if (.not. associated(this%first_item) .or. .not. associated(this%last_item)) then
+      res = .false.
+    else
+      res = associated(this%first_item%prev, this%last_item) .and. associated(this%last_item%next, this%first_item)
+    end if
 
-  end function linked_list_closed
+  end function linked_list_cyclic
 
   subroutine linked_list_insert1(this, key, value, nodup)
 
@@ -285,7 +303,7 @@ contains
     if (present(nodup) .and. nodup) then
       item => this%item(key)
       if (associated(item)) then
-        if (item%internal_memory) deallocate(item%value)
+        if (item%internal_memory .and. associated(item%value)) deallocate(item%value)
         allocate(item%value, source=value)
         item%internal_memory = .true.
         return
@@ -325,7 +343,7 @@ contains
     if (present(nodup) .and. nodup) then
       item => this%item(key)
       if (associated(item)) then
-        if (item%internal_memory) deallocate(item%value)
+        if (item%internal_memory .and. associated(item%value)) deallocate(item%value)
         item%value => value
         item%internal_memory = .false.
       end if
@@ -365,7 +383,7 @@ contains
     item => this%first_item
     do i = 1, this%size
       if (i == index) then
-        if (item%internal_memory) deallocate(item%value)
+        if (item%internal_memory .and. associated(item%value)) deallocate(item%value)
         item%value => value
         item%internal_memory = .false.
         return
@@ -442,9 +460,15 @@ contains
 
   subroutine linked_list_append_item(this, item)
 
-    class(linked_list_type), intent(inout) :: this
+    class(linked_list_type), intent(inout), target :: this
     type(linked_list_item_type), intent(inout), pointer :: item
 
+#ifndef NDEBUG
+    if (associated(item%list, this)) then
+      stop __FILE__ // ': append_item: item is already in list!'
+    end if
+    item%list => this
+#endif
     item%next => null()
     if (associated(this%last_item)) then
       item%prev => this%last_item
@@ -460,24 +484,35 @@ contains
 
   subroutine linked_list_insert_item_after(this, item1, item2)
 
-    class(linked_list_type), intent(inout) :: this
+    class(linked_list_type), intent(inout), target :: this
     type(linked_list_item_type), intent(inout), pointer :: item1
     type(linked_list_item_type), intent(inout), pointer :: item2
 
+#ifndef NDEBUG
+    if (.not. associated(item1%list, this)) then
+      stop __FILE__ // ': insert_item_after: item1 is not in list!'
+    end if
+    item2%list => this
+#endif
     item2%prev => item1
     item2%next => item1%next
     item1%next => item2
     item1%next%prev => item2
+    if (associated(this%last_item, item1)) this%last_item => item2
     this%size = this%size + 1
 
   end subroutine linked_list_insert_item_after
 
   subroutine linked_list_remove_item(this, item)
 
-    class(linked_list_type), intent(inout) :: this
+    class(linked_list_type), intent(inout), target :: this
     type(linked_list_item_type), intent(inout), pointer :: item
 
-    if (item%internal_memory) deallocate(item%value)
+#ifndef NDEBUG
+    if (.not. associated(item%list, this)) then
+      stop __FILE__ // ': insert_item_after: item1 is not in list!'
+    end if
+#endif
     if (associated(this%first_item, item)) then
       if (associated(this%first_item%next)) then
         this%first_item => this%first_item%next
@@ -485,17 +520,17 @@ contains
       else
         this%first_item => null()
       end if
-    else if (associated(this%last_item, item)) then
+    end if
+    if (associated(this%last_item, item)) then
       if (associated(this%last_item%prev)) then
         this%last_item => this%last_item%prev
         this%last_item%next => null()
       else
         this%last_item => null()
       end if
-    else
-      if (associated(item%prev)) item%prev%next => item%next
-      if (associated(item%next)) item%next%prev => item%prev
     end if
+    if (associated(item%prev)) item%prev%next => item%next
+    if (associated(item%next)) item%next%prev => item%prev
     deallocate(item)
     this%size = this%size - 1
 
@@ -517,6 +552,7 @@ contains
       end if
       item => item%next
     end do
+    stop 'linked list failed to delete pointer!'
 
   end subroutine linked_list_delete_ptr
 
@@ -570,25 +606,29 @@ contains
   !                              Replace methods
   ! ----------------------------------------------------------------------------
 
-  subroutine linked_list_replace_ptr(this, old_value, new_value, old_value2)
+  subroutine linked_list_replace_ptr(this, old_value, new_value, old_value2, fatal)
 
     class(linked_list_type), intent(inout) :: this
     class(*), intent(in), target :: old_value
     class(*), intent(in), target :: new_value
     class(*), intent(in), target, optional :: old_value2
+    logical, intent(in), optional :: fatal
 
     type(linked_list_iterator_type) iterator
 
     iterator = linked_list_iterator(this)
     do while (.not. iterator%ended())
       if (associated(iterator%value, old_value) .or. (present(old_value2) .and. associated(iterator%value, old_value2))) then
-        if (iterator%item%internal_memory) deallocate(iterator%item%value)
+        if (iterator%item%internal_memory .and. associated(iterator%item%value)) deallocate(iterator%item%value)
         iterator%item%value => new_value
         iterator%item%internal_memory = .false.
         return
       end if
       call iterator%next()
     end do
+    if (.not. present(fatal) .or. fatal) then
+      stop 'linked list failed to replace pointer!'
+    end if
 
   end subroutine linked_list_replace_ptr
 
@@ -596,7 +636,10 @@ contains
   !                               Finalizers
   ! ----------------------------------------------------------------------------
 
-  subroutine linked_list_item_finalize(this)
+  ! NOTE: Item value may contain other linked list, so this finalizer may be
+  !       called recursively.
+
+  recursive subroutine linked_list_item_finalize(this)
 
     type(linked_list_item_type), intent(inout) :: this
 
@@ -610,8 +653,10 @@ contains
 
     type(linked_list_item_type), pointer :: item1, item2
 
+    integer i
+
     item1 => this%first_item
-    do while (associated(item1))
+    do i = 1, this%size
       item2 => item1%next
       deallocate(item1)
       item1 => item2

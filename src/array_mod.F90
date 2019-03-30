@@ -169,6 +169,7 @@ contains
         return
       end if
     end do
+    stop 'array failed to replace pointer!'
 
   end subroutine array_replace_ptr
 
@@ -196,18 +197,13 @@ contains
 
     class(array_type), intent(inout) :: this
 
-    integer i
-
-    do i = 1, this%size
-      if (this%items(i)%internal_memory) deallocate(this%items(i)%value)
-    end do
     if (allocated(this%items)) deallocate(this%items)
     this%capacity = 0
     this%size = 0
 
   end subroutine array_clear
 
-  subroutine array_item_finalize(this)
+  recursive subroutine array_item_finalize(this)
 
     type(array_item_type), intent(inout) :: this
 
