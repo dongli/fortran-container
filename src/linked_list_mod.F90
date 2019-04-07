@@ -206,9 +206,9 @@ contains
 
     allocate(item)
     item%key = key
-    call this%append_item(item)
     allocate(item%value, source=value)
     item%internal_memory = .true.
+    call this%append_item(item)
 
   end subroutine linked_list_append1
 
@@ -220,9 +220,9 @@ contains
     type(linked_list_item_type), pointer :: item
 
     allocate(item)
-    call this%append_item(item)
     allocate(item%value, source=value)
     item%internal_memory = .true.
+    call this%append_item(item)
 
   end subroutine linked_list_append2
 
@@ -236,9 +236,9 @@ contains
 
     allocate(item)
     item%key = key
-    call this%append_item(item)
     item%value => value
     item%internal_memory = .false.
+    call this%append_item(item)
 
   end subroutine linked_list_append_ptr1
 
@@ -250,9 +250,9 @@ contains
     type(linked_list_item_type), pointer :: item
 
     allocate(item)
-    call this%append_item(item)
     item%value => value
     item%internal_memory = .false.
+    call this%append_item(item)
 
   end subroutine linked_list_append_ptr2
 
@@ -311,9 +311,9 @@ contains
     end if
     allocate(item)
     item%key = key
-    call this%append_item(item)
     allocate(item%value, source=value)
     item%internal_memory = .true.
+    call this%append_item(item)
 
   end subroutine linked_list_insert1
 
@@ -325,9 +325,9 @@ contains
     type(linked_list_item_type), pointer :: item
 
     allocate(item)
-    call this%append_item(item)
     allocate(item%value, source=value)
     item%internal_memory = .true.
+    call this%append_item(item)
 
   end subroutine linked_list_insert2
 
@@ -350,9 +350,9 @@ contains
     else
       allocate(item)
       item%key = key
-      call this%append_item(item)
       item%value => value
       item%internal_memory = .false.
+      call this%append_item(item)
     end if
 
   end subroutine linked_list_insert_ptr1
@@ -365,9 +365,9 @@ contains
     type(linked_list_item_type), pointer :: item
 
     allocate(item)
-    call this%append_item(item)
     item%value => value
     item%internal_memory = .false.
+    call this%append_item(item)
 
   end subroutine linked_list_insert_ptr2
 
@@ -497,8 +497,8 @@ contains
 #endif
     item2%prev => item1
     item2%next => item1%next
-    item1%next => item2
     item1%next%prev => item2
+    item1%next => item2
     if (associated(this%last_item, item1)) this%last_item => item2
     this%size = this%size + 1
 
