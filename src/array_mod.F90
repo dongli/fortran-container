@@ -13,7 +13,6 @@ module array_mod
     integer :: capacity = 0
     integer :: size = 0
     type(array_item_type), allocatable :: items(:)
-    class(*), pointer :: last_value => null()
   contains
     procedure :: expand_by => array_expand_by
     procedure :: expand_to => array_expand_to
@@ -22,6 +21,7 @@ module array_mod
     procedure :: insert_at => array_insert_at
     procedure :: insert_ptr_at => array_insert_ptr_at
     procedure :: value_at => array_value_at
+    procedure :: last_value => array_last_value
     procedure :: index_ptr => array_index_ptr
     procedure :: replace_ptr => array_replace_ptr
     procedure, private :: array_assign
@@ -85,7 +85,6 @@ contains
     this%size = this%size + 1
     allocate(this%items(this%size)%value, source=value)
     this%items(this%size)%internal_memory = .true.
-    this%last_value => this%items(this%size)%value
 
   end subroutine array_append
 
@@ -98,7 +97,6 @@ contains
     this%size = this%size + 1
     this%items(this%size)%value => value
     this%items(this%size)%internal_memory = .false.
-    this%last_value => this%items(this%size)%value
 
   end subroutine array_append_ptr
 
@@ -112,7 +110,6 @@ contains
     if (this%items(index)%internal_memory) deallocate(this%items(index)%value)
     allocate(this%items(index)%value, source=value)
     this%items(index)%internal_memory = .true.
-    if (index == this%size) this%last_value => this%items(index)%value
 
   end subroutine array_insert_at
 
@@ -126,7 +123,6 @@ contains
     if (this%items(index)%internal_memory) deallocate(this%items(index)%value)
     this%items(index)%value => value
     this%items(index)%internal_memory = .false.
-    if (index == this%size) this%last_value => this%items(index)%value
 
   end subroutine array_insert_ptr_at
 
@@ -140,6 +136,16 @@ contains
     res => this%items(index)%value
 
   end function array_value_at
+
+  function array_last_value(this) result(res)
+
+    class(array_type), intent(in) :: this
+    class(*), pointer :: res
+
+    if (this%size == 0) stop __FILE__ // ': Array is empty!'
+    res => this%items(this%size)%value
+
+  end function array_last_value
 
   integer function array_index_ptr(this, value) result(res)
 
@@ -171,7 +177,6 @@ contains
         if (this%items(i)%internal_memory) deallocate(this%items(i)%value)
         this%items(i)%value => new_value
         this%items(i)%internal_memory = .false.
-        if (i == this%size) this%last_value => this%items(i)%value
         return
       end if
     end do
@@ -206,7 +211,6 @@ contains
     if (allocated(this%items)) deallocate(this%items)
     this%capacity = 0
     this%size = 0
-    this%last_value => null()
 
   end subroutine array_clear
 
