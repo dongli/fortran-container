@@ -33,6 +33,7 @@ module linked_list_mod
     type(linked_list_item_type), pointer :: item
     type(linked_list_item_type), pointer :: next_item
     class(*), pointer :: value
+    logical, private :: started = .false.
   contains
     procedure :: ended => linked_list_iterator_ended
     procedure :: next => linked_list_iterator_next
@@ -103,12 +104,26 @@ contains
 
   end function linked_list_iterator
 
-  function linked_list_iterator_ended(this)
+  function linked_list_iterator_ended(this, cyclic)
 
     class(linked_list_iterator_type), intent(in) :: this
+    logical, intent(in), optional :: cyclic
     logical linked_list_iterator_ended
 
-    linked_list_iterator_ended = .not. associated(this%item)
+    if (.not. present(cyclic)) then
+      linked_list_iterator_ended = .not. associated(this%item)
+    else if (cyclic) then
+      if (.not. this%list%cyclic()) then
+        stop trim(__FILE__) // ': linked_list_iterator_ended: List is not cyclic!'
+      end if
+      linked_list_iterator_ended = .false.
+    else
+      if (associated(this%item, this%list%first_item)) then
+        linked_list_iterator_ended = this%started
+      else
+        linked_list_iterator_ended = .false.
+      end if
+    end if
 
   end function linked_list_iterator_ended
 
@@ -124,6 +139,7 @@ contains
       this%value => null()
       this%next_item => null()
     end if
+    if (.not. this%started) this%started = .true.
 
   end subroutine linked_list_iterator_next
 
