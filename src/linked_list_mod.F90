@@ -30,9 +30,9 @@ module linked_list_mod
 
   type linked_list_iterator_type
     type(linked_list_type), pointer :: list => null()
-    type(linked_list_item_type), pointer :: item
-    type(linked_list_item_type), pointer :: next_item
-    class(*), pointer :: value
+    type(linked_list_item_type), pointer :: item => null()
+    type(linked_list_item_type), pointer :: next_item => null()
+    class(*), pointer :: value => null()
     logical, private :: started = .false.
   contains
     procedure :: ended => linked_list_iterator_ended
@@ -104,24 +104,23 @@ contains
 
   end function linked_list_iterator
 
-  function linked_list_iterator_ended(this, cyclic)
+  logical function linked_list_iterator_ended(this, cyclic) result(res)
 
     class(linked_list_iterator_type), intent(in) :: this
     logical, intent(in), optional :: cyclic
-    logical linked_list_iterator_ended
 
     if (.not. present(cyclic)) then
-      linked_list_iterator_ended = .not. associated(this%item)
+      res = .not. associated(this%item)
     else if (cyclic) then
       if (.not. this%list%cyclic()) then
         stop trim(__FILE__) // ': linked_list_iterator_ended: List is not cyclic!'
       end if
-      linked_list_iterator_ended = .false.
+      res = .false.
     else
       if (associated(this%item, this%list%first_item)) then
-        linked_list_iterator_ended = this%started
+        res = this%started
       else
-        linked_list_iterator_ended = .false.
+        res = .false.
       end if
     end if
 

@@ -231,6 +231,10 @@ contains
 
   end subroutine array_clear
 
+  ! ----------------------------------------------------------------------------
+  !                               Finalizers
+  ! ----------------------------------------------------------------------------
+
   recursive subroutine array_item_finalize(this)
 
     type(array_item_type), intent(inout) :: this
