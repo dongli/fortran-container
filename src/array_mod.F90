@@ -24,6 +24,7 @@ module array_mod
     procedure :: last_value => array_last_value
     procedure :: index_ptr => array_index_ptr
     procedure :: replace_ptr => array_replace_ptr
+    procedure :: replace_ptr_at => array_replace_ptr_at
     procedure, private :: array_assign
     generic :: assignment(=) => array_assign
     procedure :: clear => array_clear
@@ -180,9 +181,25 @@ contains
         return
       end if
     end do
-    stop 'array failed to replace pointer!'
+    stop trim(__FILE__) // ': array_replace_ptr: array failed to replace pointer!'
 
   end subroutine array_replace_ptr
+
+  subroutine array_replace_ptr_at(this, index, new_value)
+
+    class(array_type), intent(inout) :: this
+    integer, intent(in) :: index
+    class(*), intent(in), target :: new_value
+
+    if (this%size >= index) then
+      if (this%items(index)%internal_memory) deallocate(this%items(index)%value)
+      this%items(index)%value => new_value
+      this%items(index)%internal_memory = .false.
+    else
+      stop trim(__FILE__) // ': array_replace_ptr_at: array failed to replace pointer!'
+    end if
+
+  end subroutine array_replace_ptr_at
 
   subroutine array_assign(this, that)
 
