@@ -10,6 +10,7 @@ if (CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
 elseif (CMAKE_Fortran_COMPILER_ID STREQUAL "PGI")
   set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -fPIC")
 endif ()
+set (CMAKE_Fortran_MODULE_DIRECTORY "${CMAKE_BINARY_DIR}")
 
 set (version 0.0.1)
 
