@@ -315,13 +315,15 @@ contains
 
     type(linked_list_item_type), pointer :: item
 
-    if (present(nodup) .and. nodup) then
-      item => this%item(key)
-      if (associated(item)) then
-        if (item%internal_memory .and. associated(item%value)) deallocate(item%value)
-        allocate(item%value, source=value)
-        item%internal_memory = .true.
-        return
+    if (present(nodup)) then
+      if (nodup) then
+        item => this%item(key)
+        if (associated(item)) then
+          if (item%internal_memory .and. associated(item%value)) deallocate(item%value)
+          allocate(item%value, source=value)
+          item%internal_memory = .true.
+          return
+        end if
       end if
     end if
     allocate(item)
