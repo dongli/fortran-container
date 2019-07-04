@@ -113,7 +113,8 @@ contains
       res = .not. associated(this%item)
     else if (cyclic) then
       if (.not. this%list%cyclic()) then
-        stop trim(__FILE__) // ': linked_list_iterator_ended: List is not cyclic!'
+        write(*, *) trim(__FILE__) // ': linked_list_iterator_ended: List is not cyclic!'
+        stop 1
       end if
       res = .false.
     else

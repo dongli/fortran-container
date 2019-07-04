@@ -181,7 +181,8 @@ contains
         return
       end if
     end do
-    stop trim(__FILE__) // ': array_replace_ptr: array failed to replace pointer!'
+    write(*, *) trim(__FILE__) // ': array_replace_ptr: array failed to replace pointer!'
+    stop 1
 
   end subroutine array_replace_ptr
 
@@ -196,7 +197,8 @@ contains
       this%items(index)%value => new_value
       this%items(index)%internal_memory = .false.
     else
-      stop trim(__FILE__) // ': array_replace_ptr_at: array failed to replace pointer!'
+      write(*, *) trim(__FILE__) // ': array_replace_ptr_at: array failed to replace pointer!'
+      stop 1
     end if
 
   end subroutine array_replace_ptr_at
