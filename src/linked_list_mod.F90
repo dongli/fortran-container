@@ -550,7 +550,7 @@ contains
     end if
     if (associated(item%prev)) item%prev%next => item%next
     if (associated(item%next)) item%next%prev => item%prev
-    ! deallocate(item)
+    deallocate(item)
     this%size = this%size - 1
 
   end subroutine linked_list_remove_item
