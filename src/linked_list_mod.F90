@@ -550,7 +550,7 @@ contains
     end if
     if (associated(item%prev)) item%prev%next => item%next
     if (associated(item%next)) item%next%prev => item%prev
-    deallocate(item)
+    ! deallocate(item)
     this%size = this%size - 1
 
   end subroutine linked_list_remove_item
@@ -634,19 +634,28 @@ contains
     logical, intent(in), optional :: fatal
 
     type(linked_list_item_type), pointer :: item
+    logical found
     integer i
 
+    found = .false.
     item => this%first_item
     do i = 1, this%size
-      if (associated(item%value, old_value) .or. (present(old_value2) .and. associated(item%value, old_value2))) then
-        if (item%internal_memory .and. associated(item%value)) deallocate(item%value)
-        item%value => new_value
-        item%internal_memory = .false.
-        return
+      if (associated(item%value, old_value)) then
+        found = .true.
+        exit
+      else if (present(old_value2)) then
+        if (associated(item%value, old_value2)) then
+          found = .true.
+          exit
+        end if
       end if
       item => item%next
     end do
-    if (.not. present(fatal) .or. fatal) then
+    if (found) then
+      if (item%internal_memory .and. associated(item%value)) deallocate(item%value)
+      item%value => new_value
+      item%internal_memory = .false.
+    else if (.not. present(fatal) .or. fatal) then
       stop 'linked list failed to replace pointer!'
     end if
 
