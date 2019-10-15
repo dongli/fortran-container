@@ -24,7 +24,8 @@ add_library(fortran_container SHARED ${source_files})
 set_property(TARGET fortran_container PROPERTY VERSION ${version})
 set_property(TARGET fortran_container PROPERTY SOVERSION 1)
 
-if (RUN_TEST AND EXISTS ${PROJECT_SOURCE_DIR}/lib/unit-test/CMakeLists.txt)
+get_directory_property(parent_dir PARENT_DIRECTORY)
+if (RUN_TEST AND NOT parent_dir)
   add_subdirectory("lib/unit-test")
   include_directories(${UNIT_TEST_INCLUDE_DIR})
 
