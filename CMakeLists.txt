@@ -18,6 +18,7 @@ set(source_files
   src/linked_list_mod.F90
   src/hash_table_mod.F90
   src/array_mod.F90
+  src/container.F90
 )
 
 add_library(fortran_container SHARED ${source_files})
