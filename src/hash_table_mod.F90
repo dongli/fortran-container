@@ -59,7 +59,7 @@ contains
     integer, intent(in) :: hash_code
     integer hash_table_index_number
 
-    hash_table_index_number = mod(hash_code, size(this%items)) + 1
+    hash_table_index_number = mod(hash_code, size(this%items) + 1) + 1
 
   end function hash_table_index_number
 
