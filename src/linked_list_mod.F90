@@ -515,7 +515,7 @@ contains
 #endif
     item2%prev => item1
     item2%next => item1%next
-    item1%next%prev => item2
+    if (associated(item1%next)) item1%next%prev => item2
     item1%next => item2
     if (associated(this%last_item, item1)) this%last_item => item2
     this%size = this%size + 1
