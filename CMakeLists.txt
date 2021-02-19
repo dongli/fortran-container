@@ -33,7 +33,7 @@ set(source_files
   src/container.F90
 )
 
-add_library(fortran_container SHARED ${source_files})
+add_library(fortran_container STATIC ${source_files})
 set_property(TARGET fortran_container PROPERTY VERSION ${version})
 set_property(TARGET fortran_container PROPERTY SOVERSION 1)
 
