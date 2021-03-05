@@ -358,20 +358,22 @@ contains
 
     type(linked_list_item_type), pointer :: item
 
-    if (present(nodup) .and. nodup) then
-      item => this%item(key)
-      if (associated(item)) then
-        if (item%internal_memory .and. associated(item%value)) deallocate(item%value)
-        item%value => value
-        item%internal_memory = .false.
+    if (present(nodup)) then
+      if (nodup) then
+        item => this%item(key)
+        if (associated(item)) then
+          if (item%internal_memory .and. associated(item%value)) deallocate(item%value)
+          item%value => value
+          item%internal_memory = .false.
+        end if
+        return
       end if
-    else
-      allocate(item)
-      item%key = key
-      item%value => value
-      item%internal_memory = .false.
-      call this%append_item(item)
     end if
+    allocate(item)
+    item%key = key
+    item%value => value
+    item%internal_memory = .false.
+    call this%append_item(item)
 
   end subroutine linked_list_insert_ptr1
 
@@ -515,7 +517,7 @@ contains
 #endif
     item2%prev => item1
     item2%next => item1%next
-    item1%next%prev => item2
+    if (associated(item1%next)) item1%next%prev => item2
     item1%next => item2
     if (associated(this%last_item, item1)) this%last_item => item2
     this%size = this%size + 1

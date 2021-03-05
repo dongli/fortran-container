@@ -10,7 +10,11 @@ if (CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
     set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -O2")
   endif ()
 elseif (CMAKE_Fortran_COMPILER_ID STREQUAL "PGI")
-  set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -fPIC")
+  if (CMAKE_BUILD_TYPE MATCHES Debug)
+    set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -g -O0 -traceback -fPIC")
+  else ()
+    set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -fPIC")
+  endif ()
 elseif (CMAKE_Fortran_COMPILER_ID STREQUAL "Intel")
   if (CMAKE_BUILD_TYPE MATCHES Debug)
     set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -g -O0 -traceback -check all")
@@ -29,7 +33,7 @@ set(source_files
   src/container.F90
 )
 
-add_library(fortran_container SHARED ${source_files})
+add_library(fortran_container STATIC ${source_files})
 set_property(TARGET fortran_container PROPERTY VERSION ${version})
 set_property(TARGET fortran_container PROPERTY SOVERSION 1)
 

@@ -4,6 +4,15 @@ module hash_table_mod
 
   implicit none
 
+  private
+
+  public create_hash_table
+  public hash_table
+  public hash_table_type
+  public create_hash_table_iterator
+  public hash_table_iterator
+  public hash_table_iterator_type
+
   type hash_table_item_type
     type(linked_list_type) chain
   end type hash_table_item_type
@@ -62,6 +71,16 @@ contains
     hash_table_index_number = mod(hash_code, size(this%items) + 1) + 1
 
   end function hash_table_index_number
+
+  subroutine create_hash_table(chunk_size, max_load_factor, table)
+
+    integer, intent(in), optional :: chunk_size
+    real, intent(in), optional :: max_load_factor
+    type(hash_table_type), intent(out) :: table
+
+    table = hash_table(chunk_size, max_load_factor)
+
+  end subroutine create_hash_table
 
   function hash_table(chunk_size, max_load_factor)
 
@@ -128,6 +147,15 @@ contains
     hash_table_hashed = associated(this%items(i)%chain%value(key))
 
   end function hash_table_hashed
+
+  subroutine create_hash_table_iterator(table, iter)
+
+    type(hash_table_type), intent(in), target :: table
+    type(hash_table_iterator_type) iter
+
+    iter = hash_table_iterator(table)
+
+  end subroutine create_hash_table_iterator
 
   function hash_table_iterator(table)
 
